@@ -1,0 +1,11 @@
+npm i init
+npm intall fastify
+npm i -D typescript
+npx tsc --init
+npm i eslint -D
+npm i eslint @rocketseat/eslint-config -D 
+npm install knex sqlite3
+npx knex migrate:knex $name //-Criar a migrate
+npm run knex -- migrate:latest //- Ler todas as migrates e executa
+npm run knex -- migrate:rollback //- Voltar a migrate
+npm i zod
