@@ -79,15 +79,37 @@ export async function dietRoutes(app: FastifyInstance) {
   })
 
   app.get('/users/metrics/:userId', async (request, reply) => {
-    const { userId } = request.params
-    /* const metrics = await knex('users')
+    const { userId, date } = request.params
+    const total = await knex('users')
       .count({ 'Total de Refeições': '*' })
       .leftJoin('relusersnack', 'relusersnack.userId', 'users.id')
       .leftJoin('snack', 'relusersnack.snackId', 'snack.id')
-      .where('userId', userId) */
-    const metrics = await knex.raw(
-      'WITH user_snack AS ( SELECT * FROM users LEFT JOIN relusersnack ON relusersnack.userId ON users.id LEFT JOIN snack ON snack.id = relusersnack.snackId WHERE TRUE AND userId = ?) SELECT * FROM user_snack',
-    )
+      .where('userId', userId)
+
+    const withinDiet = await knex('users')
+      .count({ 'Dentro da dieta': '*' })
+      .leftJoin('relusersnack', 'relusersnack.userId', 'users.id')
+      .leftJoin('snack', 'relusersnack.snackId', 'snack.id')
+      .where({ userId, at_diet: 1 })
+
+    const offDiet = await knex('users')
+      .count({ 'Fora da dieta': '*' })
+      .leftJoin('relusersnack', 'relusersnack.userId', 'users.id')
+      .leftJoin('snack', 'relusersnack.snackId', 'snack.id')
+      .where({ userId, at_diet: 0 })
+
+    const bestSequence = await knex('users')
+      .select({
+        best: function () {
+          this.count('*')
+        },
+      })
+      .leftJoin('relusersnack', 'relusersnack.userId', 'users.id')
+      .leftJoin('snack', 'relusersnack.snackId', 'snack.id')
+      .where({ userId, at_diet: 1 })
+      .groupBy('date')
+
+    const metrics = { total, withinDiet, offDiet, bestSequence }
     return { metrics }
   })
 
